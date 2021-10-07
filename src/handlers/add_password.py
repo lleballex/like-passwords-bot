@@ -3,10 +3,17 @@ from .general import menu
 from states import AddPassword
 from misc import COMMANDS as CMDS
 from models import User, Password
-from keyboards import main_kb, back_kb, get_add_password_kb
+from keyboards import get_add_password_kb
+from keyboards import main_kb, back_kb, generate_password_kb, generated_password_kb
 
-from aiogram.types import Message
+import string
+from random import choice
+from aiogram.utils.markdown import bold
 from aiogram.dispatcher import FSMContext
+from aiogram.types import Message, CallbackQuery, ParseMode
+
+
+ALPHABET = string.digits + string.ascii_lowercase + string.ascii_uppercase + string.punctuation
 
 
 async def get_kb(state):
@@ -65,6 +72,8 @@ async def set_source(message: Message, state: FSMContext):
 async def set_password(message: Message, state: FSMContext):
 	await AddPassword.password_wait.set()
 	await message.answer('Теперь напиши сам пароль', reply_markup=await get_kb(state))
+	await message.answer('Если хочешь, я могу его сгенерировать',
+						 reply_markup=generate_password_kb)
 
 
 @dp.message_handler(lambda message: message.text[2:] == CMDS['email'], state=AddPassword)
@@ -132,3 +141,15 @@ async def phone_process(message: Message, state: FSMContext):
 	await state.update_data(phone=message.text)
 	await wait(message, state)
 	
+
+@dp.callback_query_handler(lambda query: query.data == 'generate_password', state='*')
+async def generate_password(query: CallbackQuery, state: FSMContext):
+	await query.answer()
+
+	password = ''.join([choice(ALPHABET) for _ in range(20)])
+
+	await state.update_data(password=password)
+	await query.message.edit_text(f'Вот пароль: {bold(password)}',
+								  reply_markup=generated_password_kb,
+								  parse_mode=ParseMode.MARKDOWN_V2)
+	await wait(query.message, state)

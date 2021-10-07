@@ -21,6 +21,14 @@ password_kb.row(InlineKeyboardButton(CMDS['back'], callback_data='show_passwords
 				InlineKeyboardButton(CMDS['hide'], callback_data='hide_password'))
 
 
+generate_password_kb = InlineKeyboardMarkup()
+generate_password_kb.add(InlineKeyboardButton('🎲 Сгенерировать', callback_data='generate_password'))
+
+generated_password_kb = InlineKeyboardMarkup()
+generated_password_kb.add(InlineKeyboardButton('🎲 Перегенерировать', callback_data='generate_password'),
+						  InlineKeyboardButton(CMDS['hide'], callback_data='hide_password'))
+
+
 def get_add_password_kb(source=False, password=False, email=False, username=False, phone=False):
 	def text(key, is_entered):
 		return f'✅ {CMDS[key]}' if is_entered else f'❌ {CMDS[key]}'
