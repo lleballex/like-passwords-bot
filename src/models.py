@@ -21,7 +21,7 @@ class User(Model):
 
 	@classmethod
 	def create(cls, **query):
-		query['key'] = self._encode_key(query['key'])
+		query['key'] = cls._encode_key(cls, query['key'])
 		return super().create(**query)
 
 	def check_key(self, key):
