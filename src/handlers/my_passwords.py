@@ -74,3 +74,15 @@ async def hide_password(query: CallbackQuery):
 	await query.answer()
 	await query.message.delete()
 
+
+@dp.callback_query_handler(lambda query: query.data.startswith('to_page:'), state='*')
+async def change_passwords_page(query: CallbackQuery):
+	await query.answer()
+
+	user = User.get(user_id=query.from_user.id)
+	page = int(query.data.replace('to_page:', ''))
+
+	if user.passwords:
+		await query.message.edit_text('Вот все твои пароли', reply_markup=get_passwords_kb(user, page))
+	else:
+		await query.message.edit_text('У тебя пока нет ни одного пароля')

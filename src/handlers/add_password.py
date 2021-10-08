@@ -142,7 +142,7 @@ async def phone_process(message: Message, state: FSMContext):
 	await wait(message, state)
 	
 
-@dp.callback_query_handler(lambda query: query.data == 'generate_password', state='*')
+@dp.callback_query_handler(lambda query: query.data == 'generate_password', state=AddPassword)
 async def generate_password(query: CallbackQuery, state: FSMContext):
 	await query.answer()
 

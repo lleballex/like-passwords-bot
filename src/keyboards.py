@@ -41,9 +41,18 @@ def get_add_password_kb(source=False, password=False, email=False, username=Fals
 	return keyboard
 
 
-def get_passwords_kb(user):
+def get_passwords_kb(user, page=1):
+	count = 5
 	keyboard = InlineKeyboardMarkup()
-	for password in user.passwords:
+
+	for password in user.passwords[(page-1)*count:page*count]:
 		keyboard.row(InlineKeyboardButton(password.source,
 										  callback_data=f'show_password:{password.id}'))
+
+	keyboard.row()
+	if page != 1:
+		keyboard.insert(InlineKeyboardButton('⬅️', callback_data=f'to_page:{page - 1}'))
+	if len(user.passwords) > page * count:
+		keyboard.insert(InlineKeyboardButton('➡️', callback_data=f'to_page:{page + 1}'))
+
 	return keyboard
