@@ -2,8 +2,8 @@ from misc import dp
 from states import MyPasswords
 from misc import COMMANDS as CMDS
 from models import User, Password
-from keyboards import get_passwords_kb
-from keyboards import inline_back_kb, password_kb
+from keyboards import inline_back_kb, get_password_kb
+from keyboards import get_passwords_kb, get_deletion_kb
 
 from aiogram.types import ParseMode
 from aiogram.dispatcher import FSMContext
@@ -53,11 +53,11 @@ async def check_key(message: Message, state: FSMContext):
 
 	if user.check_key(message.text):
 		await state.finish()
-		password = Password.get_or_none(id=data['password_id']).decipher(message.text)
+		password = Password.get_or_none(id=data['password_id'])
 
 		if password:
-			await data['message'].edit_text(password.get_text_data(),
-											reply_markup=password_kb,
+			await data['message'].edit_text(password.decipher(message.text).get_text_data(),
+											reply_markup=get_password_kb(password.id),
 											parse_mode=ParseMode.MARKDOWN_V2)
 		else:
 			await data['message'].edit_text('Пароля не существует. Наверное, он был удален')
@@ -73,6 +73,29 @@ async def check_key(message: Message, state: FSMContext):
 async def hide_password(query: CallbackQuery):
 	await query.answer()
 	await query.message.delete()
+
+
+@dp.callback_query_handler(lambda query: query.data.startswith('delete_password:'), state='*')
+async def delete_password(query: CallbackQuery):
+	await query.answer()
+	id = int(query.data.replace('delete_password:', ''))
+	await query.message.edit_text('Ты точно этого хочешь?', reply_markup=get_deletion_kb(id))
+
+
+@dp.callback_query_handler(lambda query: query.data == 'cancel_deletion', state='*')
+async def cancel_deletion(query: CallbackQuery):
+	await query.answer()
+	await query.message.edit_text('Вот и хорошо')
+
+
+@dp.callback_query_handler(lambda query: query.data.startswith('confirm_deletion:'), state='*')
+async def confirm_deletion(query: CallbackQuery):
+	await query.answer()
+
+	id = int(query.data.replace('confirm_deletion:', ''))
+	Password.get(id=id).delete_instance()
+
+	await query.message.edit_text('Так уж и быть, пароль удален')
 
 
 @dp.callback_query_handler(lambda query: query.data.startswith('to_page:'), state='*')

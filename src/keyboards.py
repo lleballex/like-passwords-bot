@@ -16,11 +16,6 @@ inline_back_kb = InlineKeyboardMarkup()
 inline_back_kb.row(InlineKeyboardButton(CMDS['back'], callback_data='show_passwords'))
 
 
-password_kb = InlineKeyboardMarkup()
-password_kb.row(InlineKeyboardButton(CMDS['back'], callback_data='show_passwords'),
-				InlineKeyboardButton(CMDS['hide'], callback_data='hide_password'))
-
-
 generate_password_kb = InlineKeyboardMarkup()
 generate_password_kb.add(InlineKeyboardButton('🎲 Сгенерировать', callback_data='generate_password'))
 
@@ -55,4 +50,19 @@ def get_passwords_kb(user, page=1):
 	if len(user.passwords) > page * count:
 		keyboard.insert(InlineKeyboardButton('➡️', callback_data=f'to_page:{page + 1}'))
 
+	return keyboard
+
+
+def get_password_kb(id):
+	keyboard = InlineKeyboardMarkup()
+	keyboard.row(InlineKeyboardButton(CMDS['back'], callback_data='show_passwords'),
+				 InlineKeyboardButton(CMDS['hide'], callback_data='hide_password'),
+				 InlineKeyboardButton(CMDS['delete'], callback_data=f'delete_password:{id}'))
+	return keyboard
+
+
+def get_deletion_kb(id):
+	keyboard = InlineKeyboardMarkup()
+	keyboard.add(InlineKeyboardButton(CMDS['cancel_deletion'], callback_data='cancel_deletion'),
+				 InlineKeyboardButton(CMDS['confirm_deletion'], callback_data=f'confirm_deletion:{id}'))
 	return keyboard
