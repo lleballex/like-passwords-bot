@@ -8,7 +8,7 @@ from keyboards import main_kb, back_kb, generate_password_kb, generated_password
 
 import string
 from random import choice
-from aiogram.utils.markdown import bold
+from aiogram.utils.markdown import code
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery, ParseMode
 
@@ -35,7 +35,7 @@ async def wait(message, state):
 @dp.message_handler(lambda message: message.text == CMDS['add_password'])
 async def add_password(message: Message):
 	await AddPassword.key_wait.set()
-	await message.answer('Для продолжения напиши свой key', reply_markup=back_kb)
+	await message.answer('Для продолжения напиши свой ключ', reply_markup=back_kb)
 
 
 @dp.message_handler(lambda message: message.text == CMDS['back'], state=AddPassword)
@@ -149,7 +149,7 @@ async def generate_password(query: CallbackQuery, state: FSMContext):
 	password = ''.join([choice(ALPHABET) for _ in range(20)])
 
 	await state.update_data(password=password)
-	await query.message.edit_text(f'Вот пароль: {bold(password)}',
+	await query.message.edit_text(f'Вот пароль: {code(password)}',
 								  reply_markup=generated_password_kb,
 								  parse_mode=ParseMode.MARKDOWN_V2)
 	await wait(query.message, state)

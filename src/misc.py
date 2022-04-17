@@ -2,12 +2,14 @@ from peewee import SqliteDatabase
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
+from os import getenv
 
-API_TOKEN = ''
 
-DATABASE = ''
+API_TOKEN = getenv('API_TOKEN')
 
-ENCRYPTION_ALGORITHM = ''
+DATABASE = 'db.sqlite3'
+
+ENCRYPTION_ALGORITHM = 'HS256'
 
 COMMANDS = {
 	'my_passwords': '🗂️ Мои пароли',

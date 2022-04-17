@@ -3,6 +3,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 class Registration(StatesGroup):
 	key_wait = State()
+	key_confirmation_wait = State()
 
 
 class MyPasswords(StatesGroup):

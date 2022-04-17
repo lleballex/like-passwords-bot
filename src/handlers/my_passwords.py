@@ -28,7 +28,7 @@ async def show_password(query: CallbackQuery, state: FSMContext):
 	await state.update_data(message=query.message,
 							password_id=query.data.replace('show_password:', ''))
 	await MyPasswords.key_wait.set()
-	await query.message.edit_text('Для продолжения напиши свой key', reply_markup=inline_back_kb)
+	await query.message.edit_text('Для продолжения напиши свой ключ', reply_markup=inline_back_kb)
 
 
 @dp.callback_query_handler(lambda query: query.data == 'show_passwords', state='*')

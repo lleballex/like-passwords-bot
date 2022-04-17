@@ -4,7 +4,7 @@ from misc import ENCRYPTION_ALGORITHM
 import jwt
 import hashlib
 from peewee import Model
-from aiogram.utils.markdown import bold
+from aiogram.utils.markdown import code
 from peewee import IntegerField, CharField, ForeignKeyField
 
 
@@ -69,14 +69,14 @@ class Password(Model):
 		return super().create(**query)
 
 	def get_text_data(self):
-		text = (f'Источник: {bold(self.source)}\n'
-				f'Пароль: {bold(self.password)}\n')
+		text = (f'Источник: {code(self.source)}\n'
+				f'Пароль: {code(self.password)}\n')
 
 		if self.email:
-			text += f'Email: {bold(self.email)}\n'
+			text += f'Email: {code(self.email)}\n'
 		if self.username:
-			text += f'Логин: {bold(self.username)}\n'
+			text += f'Логин: {code(self.username)}\n'
 		if self.phone:
-			text += f'Телефон: {bold(self.phone)}\n'
+			text += f'Телефон: {code(self.phone)}\n'
 
 		return text
