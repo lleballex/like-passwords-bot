@@ -1,6 +1,6 @@
-# ⚡ xPasswordsBot
+# ⚡ likePasswordsBot
 
-Telegram bot that will store all your passwords from any services. You can not be afraid, since all data is stored in ecrypted form. Only you can access it. **[Start bot](https://t.me/xPasswordsBot)**
+Telegram bot that stores all your passwords from any services. You can not be afraid, since all data is stored in ecrypted form. Only you can access it. **[Start bot](https://t.me/likePasswordsBot)**
 
 ### Tools:
 
