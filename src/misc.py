@@ -5,7 +5,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from os import getenv
 
 
-API_TOKEN = getenv('API_TOKEN')
+BOT_TOKEN = getenv('BOT_TOKEN')
+assert BOT_TOKEN is not None 
 
 DATABASE = 'db.sqlite3'
 
@@ -28,6 +29,6 @@ COMMANDS = {
 }
 
 
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 db = SqliteDatabase(DATABASE)
