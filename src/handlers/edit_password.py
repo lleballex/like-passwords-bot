@@ -4,6 +4,7 @@ from misc import COMMANDS as CMDS
 from models import Password, User
 from keyboards import get_add_password_kb
 from keyboards import main_kb, clear_field_kb
+from .utils.password_generator import send_generator, generator_handler
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
@@ -95,6 +96,27 @@ async def edit_source(message: Message):
 @dp.message_handler(state=EditPassword.source)
 async def edit_source_process(message: Message, state: FSMContext):
     await update_field(message, state, 'source') 
+
+
+@dp.message_handler(lambda msg: msg.text[2:] == CMDS['password'],
+                    state=EditPassword.action)
+async def edit_password(message: Message):
+    await message.answer('Какой у тебя парль?',
+                         reply_markup=ReplyKeyboardRemove())
+    await send_generator(message)
+    await EditPassword.password.set()
+
+
+@dp.message_handler(state=EditPassword.password)
+async def edit_password_process(message: Message, state: FSMContext):
+    await update_field(message, state, 'password')
+
+
+@generator_handler(EditPassword)
+async def generate_password_process(query: CallbackQuery, state: FSMContext,
+                                    password: str):
+    query.message.text = password
+    await update_field(query.message, state, 'password')
 
 
 @dp.message_handler(lambda msg: msg.text[2:] == CMDS['email'],
