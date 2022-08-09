@@ -79,14 +79,14 @@ class Password(Model):
         self.save()
 
     def get_text_data(self):
-        text = (f'Источник: {code(self.source)}\n'
-                f'Пароль: {code(self.password)}\n')
+        text = (f'🌐 Источник: {code(self.source)}\n'
+                f'🔑 Пароль: {code(self.password)}\n')
 
         if self.email:
-            text += f'Email: {code(self.email)}\n'
+            text += f'📧 Email: {code(self.email)}\n'
         if self.username:
-            text += f'Логин: {code(self.username)}\n'
+            text += f'💬 Логин: {code(self.username)}\n'
         if self.phone:
-            text += f'Телефон: {code(self.phone)}\n'
+            text += f'☎️ Телефон: {code(self.phone)}\n'
 
         return text
