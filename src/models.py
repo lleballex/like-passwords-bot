@@ -16,7 +16,7 @@ class User(Model):
         database = db
         db_table = 'users'
 
-    def _encode_key(self, key):
+    def _encode_key(self, key: str):
         return hashlib.md5(bytes(key, 'utf8')).hexdigest()
 
     @classmethod
@@ -24,7 +24,7 @@ class User(Model):
         query['key'] = cls._encode_key(cls, query['key'])
         return super().create(**query)
 
-    def check_key(self, key):
+    def check_key(self, key: str):
         return self.key == self._encode_key(key)
 
 
@@ -69,6 +69,14 @@ class Password(Model):
         query['source'] = source
 
         return super().create(**query)
+    
+    def update_fields(self, key: str, **fields):
+        for field in fields:
+            if field != 'source' and fields[field]:
+                fields[field] = jwt.encode({'value': fields[field]}, key,
+                                           algorithm=ENCRYPTION_ALGORITHM)
+            setattr(self, field, fields[field])
+        self.save()
 
     def get_text_data(self):
         text = (f'Источник: {code(self.source)}\n'

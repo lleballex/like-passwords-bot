@@ -18,3 +18,13 @@ class AddPassword(StatesGroup):
     username_wait = State()
     phone_wait = State()
     wait = State()
+
+
+class EditPassword(StatesGroup):
+    key = State()
+    action = State()
+    source = State()
+    password = State()
+    email = State()
+    username = State()
+    phone = State()

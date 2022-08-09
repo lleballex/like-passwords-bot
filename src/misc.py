@@ -16,8 +16,9 @@ COMMANDS = {
     'my_passwords': '🗂️ Мои пароли',
     'add_password': '🆕 Добавить пароль',
     'back': '⬅️ Назад',
-    'save': '☑️ Сохранить',
+    'save': '✅ Сохранить',
     'hide': '👁️ Скрыть',
+    'edit': '✏️ Изменить',
     'delete': '🗑 Удалить',
     'cancel_deletion': '😌 Нет, оставить',
     'confirm_deletion': '😱 Да, удалить',
@@ -26,6 +27,7 @@ COMMANDS = {
     'email': 'Email',
     'username': 'Логин',
     'phone': 'Телефон',
+    'clear': '🧹 Очистить',
 }
 
 

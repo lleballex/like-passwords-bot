@@ -31,10 +31,14 @@ generated_password_kb.add(
 )
 
 
+clear_field_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+clear_field_kb.add(CMDS['clear'])
+
+
 def get_add_password_kb(source=False, password=False, email=False,
                         username=False, phone=False):
     def text(key, is_entered):
-        return f'✅ {CMDS[key]}' if is_entered else f'❌ {CMDS[key]}'
+        return f'🟢 {CMDS[key]}' if is_entered else f'🔴 {CMDS[key]}'
 
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.row(text('source', source), text('password', password))
@@ -66,12 +70,14 @@ def get_passwords_kb(user, page=1):
 
 def get_password_kb(id):
     keyboard = InlineKeyboardMarkup()
-    keyboard.row(InlineKeyboardButton(CMDS['back'],
-                                      callback_data='show_passwords'),
+    keyboard.row(InlineKeyboardButton(CMDS['delete'],
+                                      callback_data=f'delete_password:{id}'),
                  InlineKeyboardButton(CMDS['hide'],
                                       callback_data='hide_password'),
-                 InlineKeyboardButton(CMDS['delete'],
-                                      callback_data=f'delete_password:{id}'))
+                 InlineKeyboardButton(CMDS['edit'],
+                                      callback_data=f'edit_password:{id}'))
+    keyboard.add(InlineKeyboardButton(CMDS['back'],
+                                      callback_data='show_passwords'))
     return keyboard
 
 
