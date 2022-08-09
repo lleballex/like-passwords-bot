@@ -2,9 +2,9 @@ from misc import dp
 from states import EditPassword
 from misc import COMMANDS as CMDS
 from models import Password, User
-from keyboards import get_add_password_kb
 from keyboards import main_kb, clear_field_kb
 from .utils.password_generator import send_generator, generator_handler
+from keyboards import get_add_password_kb, get_password_field_editinig_kb
 
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
@@ -49,7 +49,10 @@ async def edit_password(query: CallbackQuery, state: FSMContext):
     password = Password.get(id)
 
     await state.update_data(password=password)
-    await query.message.edit_text('Мне нужен твой ключ')
+    await query.message.edit_text(
+        'Мне нужен твой ключ',
+        reply_markup=get_password_field_editinig_kb(id)
+    )
     await EditPassword.key.set()
 
 
@@ -100,7 +103,7 @@ async def edit_source_process(message: Message, state: FSMContext):
 
 @dp.message_handler(lambda msg: msg.text[2:] == CMDS['password'],
                     state=EditPassword.action)
-async def edit_password(message: Message):
+async def edit_password_(message: Message):
     await message.answer('Какой у тебя парль?',
                          reply_markup=ReplyKeyboardRemove())
     await send_generator(message)

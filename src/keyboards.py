@@ -88,3 +88,10 @@ def get_deletion_kb(id):
                  InlineKeyboardButton(CMDS['confirm_deletion'],
                                       callback_data=f'confirm_deletion:{id}'))
     return keyboard
+
+
+def get_password_field_editinig_kb(id):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(CMDS['back'],
+                                      callback_data=f'show_password:{id}'))
+    return keyboard
