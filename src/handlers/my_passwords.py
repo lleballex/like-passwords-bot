@@ -1,82 +1,84 @@
+from aiogram.dispatcher import FSMContext
+from aiogram.utils.exceptions import MessageNotModified
+from aiogram.types import Message, CallbackQuery, ParseMode
+
 from misc import dp
 from states import MyPasswords
 from misc import COMMANDS as CMDS
 from models import User, Password
-from keyboards import inline_back_kb, get_password_kb
-from keyboards import get_passwords_kb, get_deletion_kb
-
-from aiogram.types import ParseMode
-from aiogram.dispatcher import FSMContext
-from aiogram.types import Message, CallbackQuery
-from aiogram.utils.exceptions import MessageNotModified
+from keyboards import to_passwords_kb, get_password_kb
+from keyboards import get_passwords_kb, get_password_deletion_kb
+from .utils.key_management import clear_key, require_key, requiring_key_handler
 
 
-# do something if user does not exist
-@dp.message_handler(lambda message: message.text == CMDS['my_passwords'])
-async def my_passwords(message: Message):
-    user = User.get(user_id=message.from_user.id)
+def get_passwords_message(user_id: int, page=1):
+    user = User.get(user_id=user_id)
 
     if user.passwords:
-        await message.answer('Вот все твои пароли',
-                             reply_markup=get_passwords_kb(user))
+        return {
+            'text': 'Вот все твои пароли',
+            'reply_markup': get_passwords_kb(user, page),
+        }
     else:
-        await message.answer('У тебя пока нет ни одного пароля')
+        return {
+            'text': '🧐 У тебя пока нет ни одного пароля',
+        }
 
 
-@dp.callback_query_handler(lambda q: q.data.startswith('show_password:'),
-                           state='*')
-async def show_password(query: CallbackQuery, state: FSMContext):
-    await query.answer()
-    await state.update_data(
-        message=query.message,
-        password_id=query.data.replace('show_password:', '')
-    )
-    await MyPasswords.key_wait.set()
-    await query.message.edit_text('Для продолжения напиши свой ключ',
-                                  reply_markup=inline_back_kb)
+async def send_password(message: Message, id: int, key: str):
+    password = Password.get_or_none(id)
+
+    if password:
+        await message.edit_text(
+            password.decipher(key).get_message(),
+            reply_markup=get_password_kb(password.id),
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+        return True
+    else:
+        await message.edit_text(
+            '😬 Пароля не существует. Наверное, он был удален')
+        return False
 
 
-@dp.callback_query_handler(lambda q: q.data == 'show_passwords', state='*')
-async def show_passwords(query: CallbackQuery, state: FSMContext):
-    await query.answer()
+@dp.message_handler(lambda msg: msg.text == CMDS['my_passwords'])
+async def my_passwords(message: Message, state: FSMContext):
     await state.finish()
+    await message.answer(**get_passwords_message(message.from_user.id))
 
-    user = User.get(user_id=query.from_user.id)
 
-    if user.passwords:
-        await query.message.edit_text('Вот все твои пароли',
-                                      reply_markup=get_passwords_kb(user))
+@dp.callback_query_handler(lambda q: q.data.startswith('to_password:'),
+                           state='*')
+async def to_password(query: CallbackQuery, state: FSMContext):
+    await query.answer()
+
+    id = int(query.data.replace('to_password:', ''))
+    key = await require_key(query.message, state)
+
+    if key:
+        await send_password(query.message, id, key)
     else:
-        await query.message.edit_text('У тебя пока нет ни одного пароля')
+        await state.update_data(password_id=id)
+        await MyPasswords.key.set()
 
 
-@dp.message_handler(state=MyPasswords.key_wait)
-async def check_key(message: Message, state: FSMContext):
-    await message.delete()
+@dp.callback_query_handler(lambda q: q.data == 'to_passwords', state='*')
+async def to_passwords(query: CallbackQuery, state: FSMContext):
+    await query.answer()
 
-    user = User.get(user_id=message.from_user.id)
-    data = await state.get_data()
-
-    if user.check_key(message.text):
+    if await state.get_state() == MyPasswords.key.state:
         await state.finish()
-        password = Password.get_or_none(id=data['password_id'])
-
-        if password:
-            await data['message'].edit_text(
-                password.decipher(message.text).get_text_data(),
-                reply_markup=get_password_kb(password.id),
-                parse_mode=ParseMode.MARKDOWN_V2)
-        else:
-            await data['message'].edit_text(
-                'Пароля не существует. Наверное, он был удален')
     else:
-        try:
-            await data['message'].edit_text(
-                'Хм... Не подходит, попробуй еще раз',
-                reply_markup=inline_back_kb
-            )
-        except MessageNotModified:
-            pass
+        await clear_key(state)
+
+    await query.message.edit_text(**get_passwords_message(query.from_user.id))
+
+
+@requiring_key_handler(MyPasswords.key)
+async def asdfsa(message: Message, state: FSMContext, key: str):
+    password_id = (await state.get_data())['password_id']
+    await state.finish()
+    return await send_password(message, password_id, key)
 
 
 @dp.callback_query_handler(lambda q: q.data == 'hide_password', state='*')
@@ -85,41 +87,34 @@ async def hide_password(query: CallbackQuery):
     await query.message.delete()
 
 
-@dp.callback_query_handler(lambda q: q.data.startswith('delete_password:'),
-                           state='*')
+@dp.callback_query_handler(
+    lambda q: q.data.startswith('to_password_deletion:'), state='*')
+async def to_password_deletion(query: CallbackQuery):
+    await query.answer()
+    id = int(query.data.replace('to_password_deletion:', ''))
+    await query.message.edit_text('Ты точно этого хочешь?',
+                                  reply_markup=get_password_deletion_kb(id))
+
+
+@dp.callback_query_handler(
+    lambda q: q.data.startswith('delete_password:'), state='*')
 async def delete_password(query: CallbackQuery):
     await query.answer()
+
     id = int(query.data.replace('delete_password:', ''))
-    await query.message.edit_text('Ты точно этого хочешь?',
-                                  reply_markup=get_deletion_kb(id))
+    password = Password.get_or_none(id)
+
+    if password:
+        password.delete_instance()
+        await query.message.edit_text('✅ Так уж и быть, пароль удален')
+    else:
+        await query.message.edit_text('😬 Кажется, пароль уже удален')
 
 
-@dp.callback_query_handler(lambda q: q.data == 'cancel_deletion', state='*')
-async def cancel_deletion(query: CallbackQuery):
-    await query.answer()
-    await query.message.edit_text('Вот и хорошо')
-
-
-@dp.callback_query_handler(lambda q: q.data.startswith('confirm_deletion:'),
+@dp.callback_query_handler(lambda q: q.data.startswith('to_passwords_page:'),
                            state='*')
-async def confirm_deletion(query: CallbackQuery):
-    await query.answer()
-
-    id = int(query.data.replace('confirm_deletion:', ''))
-    Password.get(id=id).delete_instance()
-
-    await query.message.edit_text('Так уж и быть, пароль удален')
-
-
-@dp.callback_query_handler(lambda q: q.data.startswith('to_page:'), state='*')
 async def change_passwords_page(query: CallbackQuery):
     await query.answer()
-
-    user = User.get(user_id=query.from_user.id)
-    page = int(query.data.replace('to_page:', ''))
-
-    if user.passwords:
-        await query.message.edit_text(
-            'Вот все твои пароли', reply_markup=get_passwords_kb(user, page))
-    else:
-        await query.message.edit_text('У тебя пока нет ни одного пароля')
+    page = int(query.data.replace('to_passwords_page:', ''))
+    await query.message.edit_text(
+        **get_passwords_message(query.from_user.id, page=page))

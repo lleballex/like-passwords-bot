@@ -7,7 +7,7 @@ class Registration(StatesGroup):
 
 
 class MyPasswords(StatesGroup):
-    key_wait = State()
+    key = State()
 
 
 class AddPassword(StatesGroup):
