@@ -1,5 +1,5 @@
 from misc import dp
-from .general import menu
+from .main import menu
 from states import AddPassword
 from misc import COMMANDS as CMDS
 from models import User, Password
