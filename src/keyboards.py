@@ -35,8 +35,8 @@ clear_field_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 clear_field_kb.add(CMDS['clear'])
 
 
-def get_add_password_kb(source=False, password=False, email=False,
-                        username=False, phone=False):
+def get_password_updating_kb(source=False, password=False, email=False,
+                             username=False, phone=False):
     def text(key, is_entered):
         return f'🟢 {CMDS[key]}' if is_entered else f'🔴 {CMDS[key]}'
 
@@ -93,7 +93,7 @@ def get_password_deletion_kb(id):
     return keyboard
 
 
-def get_password_field_editinig_kb(id):
+def get_back_to_password_kb(id):
     keyboard = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(CMDS['back'],
                                       callback_data=f'to_password:{id}'))

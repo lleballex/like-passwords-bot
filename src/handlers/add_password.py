@@ -4,7 +4,7 @@ from states import AddPassword
 from misc import COMMANDS as CMDS
 from models import User, Password
 from keyboards import main_kb, back_kb
-from keyboards import get_add_password_kb
+from keyboards import get_password_updating_kb
 from .utils.password_generator import send_generator, generator_handler
 
 from aiogram.dispatcher import FSMContext
@@ -19,7 +19,7 @@ async def get_kb(state):
         kwargs[i] = True
     kwargs.pop('key')
 
-    return get_add_password_kb(**kwargs)
+    return get_password_updating_kb(**kwargs)
 
 
 async def wait(message, state):

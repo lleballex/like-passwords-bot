@@ -1,31 +1,37 @@
-from misc import dp
-from states import EditPassword
-from misc import COMMANDS as CMDS
-from models import Password, User
-from keyboards import main_kb, clear_field_kb
-from .utils.password_generator import send_generator, generator_handler
-from keyboards import get_add_password_kb, get_password_field_editinig_kb
-
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+
+from misc import dp
+from models import Password
+from states import EditPassword
+from misc import COMMANDS as CMDS
+from keyboards import main_kb, clear_field_kb
+from .utils.key_management import require_key, requiring_key_handler
+from .utils.password_generator import send_generator, generator_handler
+from keyboards import get_password_updating_kb, get_back_to_password_kb
 
 
 async def send_fields(message: Message, state: FSMContext):
     data = await state.get_data()
+    password: Password | None = Password.get_or_none(data['password_id'])
 
-    password: Password = data['password']
-    fields = data.get('fields', {})
+    if password:
+        fields = data.get('fields', {})
 
-    await message.answer(
-        'Что хочешь поменть?',
-        reply_markup=get_add_password_kb(
-            source=True,
-            password=True,
-            email=bool(fields.get('email', password.email)),
-            phone=bool(fields.get('phone', password.phone)),
-            username=bool(fields.get('username', password.username))),
-    )
-    await EditPassword.action.set()
+        await message.answer(
+            'Что хочешь поменть?',
+            reply_markup=get_password_updating_kb(
+                source=True,
+                password=True,
+                email=bool(fields.get('email', password.email)),
+                phone=bool(fields.get('phone', password.phone)),
+                username=bool(fields.get('username', password.username))),
+            )
+        await EditPassword.action.set()
+    else:
+        await state.finish()
+        await message.answer('😬 Кажется, пароль уже удален',
+                             reply_markup=main_kb)
 
 
 async def update_field(message: Message, state: FSMContext, field: str):
@@ -45,34 +51,32 @@ async def update_field(message: Message, state: FSMContext, field: str):
 @dp.callback_query_handler(lambda q: q.data.startswith('edit_password:'),
                            state='*')
 async def edit_password(query: CallbackQuery, state: FSMContext):
+    await query.answer()
+
     id = int(query.data.replace('edit_password:', ''))
-    password = Password.get(id)
+    key = await require_key(query.message, state, get_back_to_password_kb(id))
 
-    await state.update_data(password=password)
-    await query.message.edit_text(
-        'Мне нужен твой ключ',
-        reply_markup=get_password_field_editinig_kb(id)
-    )
-    await EditPassword.key.set()
+    await state.update_data(password_id=id)
 
-
-@dp.message_handler(state=EditPassword.key)
-async def check_key(message: Message, state: FSMContext):
-    await message.delete()
-    user: User = User.get(user_id=message.from_user.id)
-
-    if user.check_key(message.text):
-        await state.update_data(key=message.text)
-        await send_fields(message, state) 
+    if key:
+        await query.message.delete()
+        await send_fields(query.message, state)
     else:
-        await message.answer('😬 Не подходит, попробуй еще раз')
+        await EditPassword.key.set()
+
+
+@requiring_key_handler(EditPassword.key)
+async def edit_password_after_key(message: Message, state: FSMContext,
+                                  _: str):
+    await send_fields(message, state)
+    return False
 
 
 @dp.message_handler(lambda msg: msg.text == CMDS['back'],
                     state=EditPassword.action)
 async def cancel_editing(message: Message, state: FSMContext):
     await state.finish()
-    await message.answer('😔 Значит в другой раз отредактируем',
+    await message.answer('😔 Значит, в другой раз отредактируем',
                          reply_markup=main_kb)
 
 
@@ -80,12 +84,15 @@ async def cancel_editing(message: Message, state: FSMContext):
                     state=EditPassword.action)
 async def finish_editing(message: Message, state: FSMContext):
     data = await state.get_data()
-
-    password: Password = data['password']
-    password.update_fields(data['key'], **data.get('fields', {}))
-
     await state.finish()
-    await message.answer('✅ Супер! Данные изменены', reply_markup=main_kb)
+
+    password = Password.get_or_none(data['password_id'])
+
+    if password:
+        password.update_fields(data['key'], **data.get('fields', {}))
+        await message.answer('✅ Супер! Данные изменены', reply_markup=main_kb)
+    else:
+        await message.answer('😬 Кажется, этот пароль удален')
 
 
 @dp.message_handler(lambda msg: msg.text[2:] == CMDS['source'],
@@ -111,7 +118,7 @@ async def edit_password_(message: Message):
 
 
 @dp.message_handler(state=EditPassword.password)
-async def edit_password_process(message: Message, state: FSMContext):
+async def edit_password__process(message: Message, state: FSMContext):
     await update_field(message, state, 'password')
 
 

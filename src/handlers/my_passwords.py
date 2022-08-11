@@ -1,12 +1,11 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.exceptions import MessageNotModified
 from aiogram.types import Message, CallbackQuery, ParseMode
 
 from misc import dp
 from states import MyPasswords
 from misc import COMMANDS as CMDS
 from models import User, Password
-from keyboards import to_passwords_kb, get_password_kb
+from keyboards import get_password_kb, to_passwords_kb
 from keyboards import get_passwords_kb, get_password_deletion_kb
 from .utils.key_management import clear_key, require_key, requiring_key_handler
 
@@ -53,7 +52,7 @@ async def to_password(query: CallbackQuery, state: FSMContext):
     await query.answer()
 
     id = int(query.data.replace('to_password:', ''))
-    key = await require_key(query.message, state)
+    key = await require_key(query.message, state, to_passwords_kb)
 
     if key:
         await send_password(query.message, id, key)
@@ -75,16 +74,17 @@ async def to_passwords(query: CallbackQuery, state: FSMContext):
 
 
 @requiring_key_handler(MyPasswords.key)
-async def asdfsa(message: Message, state: FSMContext, key: str):
+async def to_password_after_key(message: Message, state: FSMContext, key: str):
     password_id = (await state.get_data())['password_id']
     await state.finish()
     return await send_password(message, password_id, key)
 
 
 @dp.callback_query_handler(lambda q: q.data == 'hide_password', state='*')
-async def hide_password(query: CallbackQuery):
+async def hide_password(query: CallbackQuery, state: FSMContext):
     await query.answer()
     await query.message.delete()
+    await clear_key(state)
 
 
 @dp.callback_query_handler(
