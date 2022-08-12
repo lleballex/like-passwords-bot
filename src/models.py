@@ -1,16 +1,16 @@
+import hashlib
+
+import jwt
+import peewee
+from aiogram.utils.markdown import escape_md 
+
 from misc import db
 from misc import ENCRYPTION_ALGORITHM
 
-import jwt
-import hashlib
-from peewee import Model
-from aiogram.utils.markdown import code
-from peewee import IntegerField, CharField, ForeignKeyField
 
-
-class User(Model):
-    user_id = IntegerField()
-    key = CharField()
+class User(peewee.Model):
+    user_id = peewee.IntegerField()
+    key = peewee.CharField()
 
     class Meta:
         database = db
@@ -28,13 +28,13 @@ class User(Model):
         return self.key == self._encode_key(key)
 
 
-class Password(Model):
-    user = ForeignKeyField(User, related_name='passwords')
-    source = CharField()
-    password = CharField()
-    email = CharField(null=True)
-    username = CharField(null=True)
-    phone = CharField(null=True)
+class Password(peewee.Model):
+    user = peewee.ForeignKeyField(User, related_name='passwords')
+    source = peewee.CharField()
+    password = peewee.CharField()
+    email = peewee.CharField(null=True)
+    username = peewee.CharField(null=True)
+    phone = peewee.CharField(null=True)
 
     class Meta:
         database = db
@@ -78,15 +78,15 @@ class Password(Model):
             setattr(self, field, fields[field])
         self.save()
 
-    def get_text_data(self):
-        text = (f'🌐 Источник: {code(self.source)}\n'
-                f'🔑 Пароль: {code(self.password)}\n')
+    def get_message(self):
+        text = (f'🌐 Источник: `{escape_md(self.source)}`\n'
+                f'🔑 Пароль: `{escape_md(self.password)}`\n')
 
         if self.email:
-            text += f'📧 Email: {code(self.email)}\n'
+            text += f'📧 Email: `{escape_md(self.email)}`\n'
         if self.username:
-            text += f'💬 Логин: {code(self.username)}\n'
+            text += f'💬 Логин: `{escape_md(self.username)}`\n'
         if self.phone:
-            text += f'☎️ Телефон: {code(self.phone)}\n'
+            text += f'☎️ Телефон: `{escape_md(self.phone)}`\n'
 
         return text
