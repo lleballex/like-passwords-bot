@@ -27,7 +27,7 @@ generated_password_kb.add(
     InlineKeyboardButton('🎲 Перегенерировать',
                          callback_data='generate_password'),
     InlineKeyboardButton(CMDS['hide'],
-                         callback_data='hide_password')
+                         callback_data='hide_generated_password')
 )
 
 

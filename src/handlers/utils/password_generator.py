@@ -20,6 +20,12 @@ async def send_generator(message: Message):
 
 
 def generator_handler(state):
+    @dp.callback_query_handler(lambda q: q.data == 'hide_generated_password',
+                               state='*')
+    async def hide_generated_password(query: CallbackQuery):
+        await query.answer()
+        await query.message.delete()
+
     def decorator(callback: Callable[[CallbackQuery, FSMContext, str],
                                      Awaitable[None]]):
         @dp.callback_query_handler(lambda q: q.data == 'generate_password',

@@ -11,13 +11,13 @@ class MyPasswords(StatesGroup):
 
 
 class AddPassword(StatesGroup):
-    key_wait = State()
-    source_wait = State()
-    password_wait = State()
-    email_wait = State()
-    username_wait = State()
-    phone_wait = State()
-    wait = State()
+    key = State()
+    source = State()
+    password = State()
+    email = State()
+    username = State()
+    phone = State()
+    action = State()
 
 
 class EditPassword(StatesGroup):
