@@ -14,6 +14,7 @@ assert WEBHOOK_HOST is not None or USE_LONGPOLL
 WEBHOOK_PATH = getenv('WEBHOOK_PATH', '')
 WEBAPP_HOST = getenv('WEBAPP_HOST', 'localhost')
 WEBAPP_PORT = getenv('WEBAPP_PORT', 8000)
+SSL_CERTIFICATE = getenv('SSL_CERTIFICATE')
 
 DATABASE = 'db.sqlite3'
 

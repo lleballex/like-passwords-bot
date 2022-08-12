@@ -1,3 +1,4 @@
+from ssl import cert_time_to_seconds
 from aiogram import executor
 
 import sys
@@ -11,14 +12,20 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         import handlers
         from misc import dp, bot
-        from misc import WEBAPP_HOST, WEBAPP_PORT
         from misc import USE_LONGPOLL, WEBHOOK_HOST, WEBHOOK_PATH
+        from misc import WEBAPP_HOST, WEBAPP_PORT, SSL_CERTIFICATE
 
         if USE_LONGPOLL:
             executor.start_polling(dp, skip_updates=True)
         else:
             async def on_startup(_):
-                await bot.set_webhook(f'{WEBHOOK_HOST}{WEBHOOK_PATH}')
+                if SSL_CERTIFICATE:
+                    certificate=open(SSL_CERTIFICATE, 'rb')
+                else:
+                    certificate=None
+
+                await bot.set_webhook(f'{WEBHOOK_HOST}{WEBHOOK_PATH}',
+                                      certificate)
 
             async def on_shutdown(_):
                 await bot.delete_webhook()
