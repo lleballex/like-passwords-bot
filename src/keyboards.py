@@ -60,10 +60,10 @@ def get_passwords_kb(user, page=1):
     keyboard.row()
     if page != 1:
         keyboard.insert(InlineKeyboardButton(
-            '⬅️', callback_data=f'to_ppasswords_page:{page - 1}'))
+            '⬅️', callback_data=f'to_passwords_page:{page - 1}'))
     if len(user.passwords) > page * per_page:
         keyboard.insert(InlineKeyboardButton(
-            '➡️', callback_data=f'to_ppasswords_page:{page + 1}'))
+            '➡️', callback_data=f'to_passwords_page:{page + 1}'))
 
     return keyboard
 
