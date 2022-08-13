@@ -1,4 +1,3 @@
-from ssl import cert_time_to_seconds
 from aiogram import executor
 
 import sys
