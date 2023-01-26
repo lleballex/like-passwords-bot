@@ -1,5 +1,6 @@
-env/
-__pycache__/
+env
+__pycache__
+db
 
-db.sqlite3
 .env
+db.sqlite3

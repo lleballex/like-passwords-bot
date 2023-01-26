@@ -16,7 +16,7 @@ WEBAPP_HOST = getenv('WEBAPP_HOST', 'localhost')
 WEBAPP_PORT = getenv('WEBAPP_PORT', 8000)
 SSL_CERTIFICATE = getenv('SSL_CERTIFICATE')
 
-DATABASE = 'db.sqlite3'
+DATABASE = getenv('DATABASE', 'db.sqlite3')
 
 ENCRYPTION_ALGORITHM = 'HS256'
 
