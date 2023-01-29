@@ -12,10 +12,10 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: www
+          username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_KEY }}
           script: |
-            cd ~/home/www/like-passwords-bot
+            cd ~/like-passwords-bot
             git pull
             sudo docker stop like-passwords-bot
             sudo docker rm like-passwords-bot
